@@ -8,3 +8,8 @@ export interface RegisterUserPayload {
     address?: string,
     photoUrl?: string
 }
+
+export interface LoginPayload {
+    email: string,
+    password: string
+}

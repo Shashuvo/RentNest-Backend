@@ -1,0 +1,15 @@
+model User {
+  id        String     @id @default(uuid())
+  name      String     @db.VarChar(200)
+  email     String     @unique @db.VarChar(200)
+  password  String     @db.VarChar(100)
+  role      Role       @default(TENANT)
+  status    UserStatus @default(ACTIVE)
+  phone     String?    @db.VarChar(20)
+  address   String?    @db.VarChar(100)
+  photoUrl  String?    @db.VarChar(300)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("users")
+}

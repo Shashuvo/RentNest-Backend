@@ -6,6 +6,7 @@ import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 import { authRoutes } from "./modules/auth/auth.route";
 import { categoryRoutes } from "./modules/category/category.route";
 import { landlordRoutes } from "./modules/landlord/landlord.route";
+import { propertyRoutes } from "./modules/property/property.routes";
 
 
 const app: Application = express();
@@ -29,6 +30,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 // landlord routes
 app.use("/api/landlord", landlordRoutes);
+// property routes
+app.use("/api/properties", propertyRoutes);
 
 
 app.use(globalErrorHandler);

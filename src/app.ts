@@ -28,7 +28,7 @@ app.use("/api/auth", authRoutes);
 // categories routes
 app.use("/api/categories", categoryRoutes);
 // landlord routes
-app.use("/api/landlord", landlordRoutes)
+app.use("/api/landlord", landlordRoutes);
 
 
 app.use(globalErrorHandler);

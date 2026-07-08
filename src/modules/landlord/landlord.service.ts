@@ -18,7 +18,7 @@ const createProperty = async (payload: CreatePropertyPayload, landlordId: string
         }
     });
 
-    return result
+    return result;
 }
 
 export const landlordService = {

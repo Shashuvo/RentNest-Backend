@@ -8,5 +8,5 @@ export interface CreatePropertyPayload {
     bedrooms?: number,
     bathrooms?: number,
     images?: string[],
-    categoryId: string,
+    categoryId: string
 }

@@ -6,7 +6,7 @@ import { landlordController } from "./landlord.controller";
 const router = Router();
 
 // create property
-router.post("/properties", auth(Role.LANDLORD), landlordController.createProperty)
+router.post("/properties", auth(Role.LANDLORD), landlordController.createProperty);
 
 
 export const landlordRoutes = router;

@@ -4,7 +4,7 @@ model Property {
   description String
   address     String   @db.VarChar(250)
   city        String   @db.VarChar(100)
-  area        String   @db.VarChar(100)
+  area        Float?   
   price       Float
   bedrooms    Int      @default(1)
   bathrooms   Int      @default(1)

@@ -36,7 +36,7 @@ const deleteCategory = async (categoryId: string) => {
 
     await prisma.category.delete({
         where: {
-            id: isCategoryExist.id
+            id: categoryId
         }
     })
 

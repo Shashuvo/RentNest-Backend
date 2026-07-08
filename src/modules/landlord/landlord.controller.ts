@@ -15,8 +15,22 @@ const createProperty = catchAsync(async (req: Request, res: Response, next: Next
         message: "Property created successfully.",
         data: result
     })
+});
+// update property
+const updateProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const propertyId = req.params.id as string;
+    const payload = req.body;
+    const landlordId = req.user?.id as string;
+    const result = await landlordService.updateProperty(landlordId, propertyId, payload);
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Property updated successfully.",
+        data: result
+    })
 })
 
 export const landlordController = {
-    createProperty
+    createProperty,
+    updateProperty,
 }

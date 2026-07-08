@@ -7,6 +7,8 @@ const router = Router();
 
 // create property
 router.post("/properties", auth(Role.LANDLORD), landlordController.createProperty);
+// update property
+router.put("/properties/:id", auth(Role.LANDLORD), landlordController.updateProperty);
 
 
 export const landlordRoutes = router;

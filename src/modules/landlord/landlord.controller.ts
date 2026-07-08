@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { landlordService } from "./landlord.service";
 import { sendResponse } from "../../utils/sendResponse";
+import { appError } from '../../utils/appError';
 
 // create property
 const createProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -28,9 +29,26 @@ const updateProperty = catchAsync(async (req: Request, res: Response, next: Next
         message: "Property updated successfully.",
         data: result
     })
-})
+});
+
+// delete property
+const deleteProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const propertyId = req.params.id as string;
+    const landlordId = req.user?.id as string;
+    if (!propertyId) {
+        throw new appError("Please provide a property id", httpStatus.BAD_REQUEST);
+    }
+    const result = await landlordService.deleteProperty(landlordId, propertyId);
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Property deleted successfully.",
+        data: result
+    })
+});
 
 export const landlordController = {
     createProperty,
     updateProperty,
+    deleteProperty
 }

@@ -23,7 +23,6 @@ const createProperty = async (payload: CreatePropertyPayload, landlordId: string
     return result;
 };
 
-
 // update property
 const updateProperty = async (landlordId: string, propertyId: string, payload: UpdatePropertyPayload) => {
     const property = await prisma.property.findUniqueOrThrow({
@@ -49,9 +48,28 @@ const updateProperty = async (landlordId: string, propertyId: string, payload: U
         },
     });
     return result;
-}
+};
+
+const deleteProperty = async (landlordId: string, propertyId: string) => {
+    const property = await prisma.property.findUniqueOrThrow({
+        where: {
+            id: propertyId
+        }
+    })
+    if (property.landlordId !== landlordId) {
+        throw new appError("You are not owner of this property. You can not delete this property.", httpStatus.FORBIDDEN)
+    }
+
+    await prisma.property.delete({
+        where: {
+            id: propertyId
+        }
+    })
+    return null;
+};
 
 export const landlordService = {
     createProperty,
-    updateProperty
+    updateProperty,
+    deleteProperty
 }

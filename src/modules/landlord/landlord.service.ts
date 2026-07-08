@@ -50,14 +50,14 @@ const updateProperty = async (landlordId: string, propertyId: string, payload: U
     return result;
 };
 
-const deleteProperty = async (landlordId: string, propertyId: string) => {
+const deleteProperty = async (landlordId: string, propertyId: string, isAdmin: boolean) => {
     const property = await prisma.property.findUniqueOrThrow({
         where: {
             id: propertyId
         }
     })
-    if (property.landlordId !== landlordId) {
-        throw new appError("You are not owner of this property. You can not delete this property.", httpStatus.FORBIDDEN)
+    if (!isAdmin || property.landlordId !== landlordId) {
+        throw new appError("You are not allowed delete this property.", httpStatus.FORBIDDEN)
     }
 
     await prisma.property.delete({

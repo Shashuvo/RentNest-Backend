@@ -16,4 +16,7 @@ router.get("/me", auth(), authController.getMe);
 // update me
 router.patch("/update-me", auth(), authController.updateMe);
 
+// refresh token
+router.post("/refresh-token", authController.refreshToken);
+
 export const authRoutes = router;

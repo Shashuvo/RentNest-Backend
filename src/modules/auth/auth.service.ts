@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import { appError } from "../../utils/appError";
-import { LoginPayload, RegisterUserPayload } from "./auth.interface";
+import { LoginPayload, RegisterUserPayload, UpdateUserPayload } from "./auth.interface";
 import config from "../../config";
 import { jwtUtils } from "../../utils/jwt";
 import { SignOptions } from "jsonwebtoken";
@@ -119,10 +119,35 @@ const getMe = async (userId: string) => {
         throw new appError("User not found.", 404);
     }
     return user;
+};
+
+// update me
+const updateMe = async (userId: string, payload: UpdateUserPayload) => {
+    const { name, email, phone, address, photoUrl } = payload
+    const user = await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            name,
+            email,
+            phone,
+            address,
+            photoUrl
+        },
+        omit: {
+            password: true
+        }
+    })
+    if (!user) {
+        throw new appError("User not found.", 404);
+    }
+    return user;
 }
 
 export const authService = {
     registerUserIntoDB,
     loginUser,
-    getMe
+    getMe,
+    updateMe
 }

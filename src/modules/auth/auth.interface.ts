@@ -13,3 +13,11 @@ export interface LoginPayload {
     email: string,
     password: string
 }
+
+export interface UpdateUserPayload {
+    name?: string,
+    email?: string,
+    phone?: string,
+    address?: string,
+    photoUrl?: string
+}

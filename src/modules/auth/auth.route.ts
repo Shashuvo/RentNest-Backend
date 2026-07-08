@@ -13,4 +13,7 @@ router.post("/login", authController.loginUser);
 // get me
 router.get("/me", auth(), authController.getMe);
 
+// update me
+router.patch("/update-me", auth(), authController.updateMe);
+
 export const authRoutes = router;

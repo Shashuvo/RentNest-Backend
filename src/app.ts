@@ -4,6 +4,7 @@ import cors from "cors";
 import config from "./config";
 import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 import { authRoutes } from "./modules/auth/auth.route";
+import { categoryRoutes } from "./modules/category/category.route";
 
 
 const app: Application = express();
@@ -23,6 +24,8 @@ app.get("/", (req: Request, res: Response) => {
 
 // authentication routes
 app.use("/api/auth", authRoutes);
+// categories routes
+app.use("/api/categories", categoryRoutes);
 
 
 app.use(globalErrorHandler);

@@ -5,6 +5,7 @@ import httpStatus from "http-status"
 
 // create rental request 
 const CreateRentalRequest = async (tenantId: string, payload: CreateRentalRequestPayload) => {
+    const propertyId = payload.propertyId;
     const property = await prisma.property.findUniqueOrThrow({
         where: {
             id: payload.propertyId
@@ -21,7 +22,7 @@ const CreateRentalRequest = async (tenantId: string, payload: CreateRentalReques
 
     const existingRequest = await prisma.rentalRequest.findFirst({
         where: {
-            id: payload.propertyId,
+            propertyId,
             tenantId,
             status: { in: ["PENDING", "ACTIVE", "APPROVED"] }
         }
@@ -47,6 +48,31 @@ const CreateRentalRequest = async (tenantId: string, payload: CreateRentalReques
     return result;
 };
 
+// get my rental requests
+const getMyRentalRequests = async (tenantId: string) => {
+    const result = await prisma.rentalRequest.findMany({
+        where: {
+            tenantId
+        },
+        include: {
+            property: {
+                include: {
+                    category: true,
+                    landlord: {
+                        omit: { password: true }
+                    }
+                }
+            },
+            // payment:true
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    });
+    return result;
+}
+
 export const rentalService = {
-    CreateRentalRequest
+    CreateRentalRequest,
+    getMyRentalRequests
 }

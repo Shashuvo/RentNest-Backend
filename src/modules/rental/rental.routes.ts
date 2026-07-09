@@ -7,7 +7,8 @@ const router = Router();
 
 // create a rental request
 router.post("/", auth(Role.TENANT), rentalController.createRentalRequests);
-// get my rental request
+// get rental request
 router.get("/", auth(Role.TENANT), rentalController.getMyRentalRequests);
+// get rental request by id
 
 export const rentalRoutes = router;

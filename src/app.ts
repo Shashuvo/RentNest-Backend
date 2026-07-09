@@ -8,6 +8,7 @@ import { categoryRoutes } from "./modules/category/category.route";
 import { landlordRoutes } from "./modules/landlord/landlord.route";
 import { propertyRoutes } from "./modules/property/property.routes";
 import { reviewRoutes } from "./modules/review/review.routes";
+import { rentalRoutes } from "./modules/rental/rental.routes";
 
 
 const app: Application = express();
@@ -33,6 +34,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/landlord", landlordRoutes);
 // property routes
 app.use("/api/properties", propertyRoutes);
+// rental requests routes
+app.use("/api/rentals", rentalRoutes);
 // reviews routes
 app.use("/api/reviews", reviewRoutes);
 

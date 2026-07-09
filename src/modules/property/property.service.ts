@@ -62,7 +62,7 @@ const getAllPropertiesFromDB = async (query: PropertyQuery) => {
                 landlord: {
                     omit: { password: true }
                 },
-                // _count: { select: { reviews: true } }
+                _count: { select: { reviews: true } }
             },
             orderBy: { [sortBy]: sortOrder },
             take: limit,

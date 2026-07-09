@@ -7,6 +7,7 @@ import { authRoutes } from "./modules/auth/auth.route";
 import { categoryRoutes } from "./modules/category/category.route";
 import { landlordRoutes } from "./modules/landlord/landlord.route";
 import { propertyRoutes } from "./modules/property/property.routes";
+import { reviewRoutes } from "./modules/review/review.routes";
 
 
 const app: Application = express();
@@ -32,6 +33,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/landlord", landlordRoutes);
 // property routes
 app.use("/api/properties", propertyRoutes);
+// reviews routes
+app.use("/api/reviews", reviewRoutes);
 
 
 app.use(globalErrorHandler);

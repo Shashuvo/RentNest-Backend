@@ -7,6 +7,8 @@ import { reviewController } from "./review.controller";
 const router = Router();
 
 // create review
-router.post("/", auth(Role.TENANT), reviewController.createReview)
+router.post("/", auth(Role.TENANT), reviewController.createReview);
+// get reviews
+router.get("/:propertyId", reviewController.getPropertyReviews);
 
 export const reviewRoutes = router;

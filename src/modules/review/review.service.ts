@@ -13,7 +13,7 @@ const createReview = async (payload: CreateReviewPayload, tenantId: string) => {
         throw new appError("You are not authorized to review this rental.", httpStatus.FORBIDDEN);
     }
 
-    if (rentalRequest.status === "COMPLETED") {
+    if (rentalRequest.status !== "COMPLETED") {
         throw new appError("You can only review the completed rentals.", httpStatus.BAD_REQUEST);
     }
 
@@ -47,6 +47,44 @@ const createReview = async (payload: CreateReviewPayload, tenantId: string) => {
     return result;
 };
 
+// get reviews
+const getPropertyReviews = async (propertyId: string) => {
+    await prisma.property.findUniqueOrThrow({
+        where: {
+            id: propertyId,
+        },
+    });
+
+    const result = await prisma.review.findMany({
+        where: { propertyId },
+        select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+            tenant: {
+                omit: {
+                    password: true,
+                },
+            },
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+
+    const total = result.length;
+    const averageRating =
+        total > 0 ? result.reduce((sum, r) => sum + r.rating, 0) / total : 0;
+
+    return {
+        averageRating: Math.round(averageRating * 10) / 10,
+        total,
+        reviews: result,
+    };
+};
+
 export const reviewService = {
-    createReview
+    createReview,
+    getPropertyReviews
 }

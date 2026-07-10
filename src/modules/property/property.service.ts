@@ -82,6 +82,42 @@ const getAllPropertiesFromDB = async (query: PropertyQuery) => {
     };
 };
 
+const getPropertyById = async (propertyId: string) => {
+    const result = await prisma.property.findUniqueOrThrow({
+        where: {
+            id: propertyId,
+        },
+        include: {
+            category: true,
+            landlord: {
+                omit: {
+                    password: true,
+                },
+            },
+            reviews: {
+                include: {
+                    tenant: {
+                        omit: {
+                            password: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    createdAt: "desc",
+                },
+            },
+            _count: {
+                select: {
+                    reviews: true,
+                    rentalRequests: true,
+                },
+            },
+        },
+    });
+    return result;
+};
+
 export const propertyService = {
-    getAllPropertiesFromDB
+    getAllPropertiesFromDB,
+    getPropertyById
 }

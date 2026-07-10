@@ -1,8 +1,8 @@
-// import { Router } from "express";
+import { Router } from "express";
 
-// const router = Router();
+const router = Router();
 
-// // create review
-// router.post("/",)
+// create review
+router.post("/",)
 
-// export const reviewRoutes = router;
+export const reviewRoutes = router;

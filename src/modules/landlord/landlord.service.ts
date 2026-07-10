@@ -50,6 +50,7 @@ const updateProperty = async (landlordId: string, propertyId: string, payload: U
     return result;
 };
 
+// delete a property
 const deleteProperty = async (landlordId: string, propertyId: string, isAdmin: boolean) => {
     const property = await prisma.property.findUniqueOrThrow({
         where: {
@@ -68,8 +69,34 @@ const deleteProperty = async (landlordId: string, propertyId: string, isAdmin: b
     return null;
 };
 
+// get landlord requests
+const getLandlordRequests = async (landlordId: string) => {
+    const result = await prisma.rentalRequest.findMany({
+        where: {
+            property: {
+                landlordId,
+            },
+        },
+        include: {
+            tenant: {
+                omit: {
+                    password: true,
+                },
+            },
+            property: {
+                include: { category: true },
+            },
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+    return result;
+};
+
 export const landlordService = {
     createProperty,
     updateProperty,
-    deleteProperty
+    deleteProperty,
+    getLandlordRequests
 }

@@ -19,7 +19,7 @@ const createProperty = catchAsync(async (req: Request, res: Response, next: Next
 });
 // update property
 const updateProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const propertyId = req.params.id as string;
+    const propertyId = req.params.propertyId as string;
     const payload = req.body;
     const landlordId = req.user?.id as string;
     const result = await landlordService.updateProperty(landlordId, propertyId, payload);
@@ -33,7 +33,7 @@ const updateProperty = catchAsync(async (req: Request, res: Response, next: Next
 
 // delete property
 const deleteProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const propertyId = req.params.id as string;
+    const propertyId = req.params.propertyId as string;
     const landlordId = req.user?.id as string;
     const isAdmin = req.user?.role === "ADMIN";
     if (!propertyId) {
@@ -48,8 +48,22 @@ const deleteProperty = catchAsync(async (req: Request, res: Response, next: Next
     })
 });
 
+// get landlord requests
+const getLandlordRequests = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const landlordId = req.user?.id as string;
+    const result = await landlordService.getLandlordRequests(landlordId);
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Rental requests retrieved successfully.",
+        data: result
+    })
+});
+
+
 export const landlordController = {
     createProperty,
     updateProperty,
-    deleteProperty
+    deleteProperty,
+    getLandlordRequests
 }

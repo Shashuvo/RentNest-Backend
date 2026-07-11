@@ -7,10 +7,11 @@ import { authRoutes } from "./modules/auth/auth.route";
 import { categoryRoutes } from "./modules/category/category.route";
 import { landlordRoutes } from "./modules/landlord/landlord.route";
 import { propertyRoutes } from "./modules/property/property.routes";
-// import { reviewRoutes } from "./modules/review/review.routes";
 import { rentalRoutes } from "./modules/rental/rental.routes";
 import { reviewRoutes } from "./modules/review/review.routes";
 import { adminRoutes } from "./modules/admin/admin.route";
+import { paymentRoutes } from "./modules/payment/payment.route";
+import { notFound } from "./middlewares/notFound";
 
 
 const app: Application = express();
@@ -19,6 +20,8 @@ app.use(cors({
     origin: config.app_url,
     credentials: true
 }));
+
+app.use("/api/payments/confirm", express.raw({ type: "application/json" }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -42,8 +45,10 @@ app.use("/api/rentals", rentalRoutes);
 app.use("/api/reviews", reviewRoutes);
 // admin routes
 app.use("/api/admin", adminRoutes);
+// payment routes
+app.use("/api/payments", paymentRoutes);
 
-
+app.use(notFound);
 app.use(globalErrorHandler);
 
 export default app;

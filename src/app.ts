@@ -10,6 +10,7 @@ import { propertyRoutes } from "./modules/property/property.routes";
 // import { reviewRoutes } from "./modules/review/review.routes";
 import { rentalRoutes } from "./modules/rental/rental.routes";
 import { reviewRoutes } from "./modules/review/review.routes";
+import { adminRoutes } from "./modules/admin/admin.route";
 
 
 const app: Application = express();
@@ -39,6 +40,8 @@ app.use("/api/properties", propertyRoutes);
 app.use("/api/rentals", rentalRoutes);
 // reviews routes
 app.use("/api/reviews", reviewRoutes);
+// admin routes
+app.use("/api/admin", adminRoutes);
 
 
 app.use(globalErrorHandler);

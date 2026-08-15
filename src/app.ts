@@ -12,6 +12,7 @@ import { reviewRoutes } from "./modules/review/review.routes";
 import { adminRoutes } from "./modules/admin/admin.route";
 import { paymentRoutes } from "./modules/payment/payment.route";
 import { notFound } from "./middlewares/notFound";
+import { uploadRoutes } from "./modules/upload/upload.route";
 
 
 const app: Application = express();
@@ -47,6 +48,8 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin", adminRoutes);
 // payment routes
 app.use("/api/payments", paymentRoutes);
+// upload routes
+app.use("/api/upload", uploadRoutes);
 
 app.use(notFound);
 app.use(globalErrorHandler);

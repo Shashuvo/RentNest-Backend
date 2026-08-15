@@ -36,6 +36,7 @@ const deleteProperty = catchAsync(async (req: Request, res: Response, next: Next
     const propertyId = req.params.propertyId as string;
     const landlordId = req.user?.id as string;
     const isAdmin = req.user?.role === "ADMIN";
+    
     if (!propertyId) {
         throw new appError("Please provide a property id", httpStatus.BAD_REQUEST);
     }
@@ -74,11 +75,31 @@ const updateRentalStatus = catchAsync(async (req: Request, res: Response, next: 
     })
 });
 
+// get my properties
+const getMyProperties = catchAsync(
+    async (req: Request, res: Response) => {
+        const landlordId = req.user?.id as string;
+
+        const result =
+            await landlordService.getMyProperties(
+                landlordId
+            );
+
+        sendResponse(res, {
+            success: true,
+            statusCode: httpStatus.OK,
+            message: "Properties retrieved successfully.",
+            data: result,
+        });
+    }
+);
+
 
 export const landlordController = {
     createProperty,
     updateProperty,
     deleteProperty,
     getLandlordRequests,
-    updateRentalStatus
+    updateRentalStatus,
+    getMyProperties
 }

@@ -58,8 +58,11 @@ const deleteProperty = async (landlordId: string, propertyId: string, isAdmin: b
             id: propertyId
         }
     })
-    if (!isAdmin || property.landlordId !== landlordId) {
-        throw new appError("You are not allowed delete this property.", httpStatus.FORBIDDEN)
+    if (!isAdmin && property.landlordId !== landlordId) {
+        throw new appError(
+            "You are not allowed to delete this property.",
+            httpStatus.FORBIDDEN
+        );
     }
 
     await prisma.property.delete({
@@ -137,10 +140,40 @@ const updateRentalStatus = async (landlordId: string, requestId: string, payload
     return result;
 }
 
+const getMyProperties = async (
+    landlordId: string
+) => {
+    const result = await prisma.property.findMany({
+        where: {
+            landlordId,
+        },
+        include: {
+            category: true,
+            landlord: {
+                omit: {
+                    password: true,
+                },
+            },
+            _count: {
+                select: {
+                    reviews: true,
+                    rentalRequests: true,
+                },
+            },
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+
+    return result;
+};
+
 export const landlordService = {
     createProperty,
     updateProperty,
     deleteProperty,
     getLandlordRequests,
-    updateRentalStatus
+    updateRentalStatus,
+    getMyProperties
 }

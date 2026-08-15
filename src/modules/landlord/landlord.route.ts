@@ -15,6 +15,8 @@ router.delete("/properties/:propertyId", auth(Role.LANDLORD, Role.ADMIN), landlo
 router.get("/requests", auth(Role.LANDLORD), landlordController.getLandlordRequests);
 // update rental status
 router.patch("/requests/:requestId", auth(Role.LANDLORD), landlordController.updateRentalStatus);
+// get my properties
+router.get("/properties", auth(Role.LANDLORD), landlordController.getMyProperties);
 
 
 export const landlordRoutes = router;

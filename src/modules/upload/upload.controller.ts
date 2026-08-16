@@ -33,6 +33,34 @@ const uploadImages = catchAsync(
     }
 );
 
+const uploadProfileImage = catchAsync(
+    async (
+        req: Request,
+        res: Response
+    ) => {
+        const file = req.file;
+
+        if (!file) {
+            return res.status(httpStatus.BAD_REQUEST).json({
+                success: false,
+                statusCode: httpStatus.BAD_REQUEST,
+                message: "Please provide an image.",
+            });
+        }
+
+        const result =
+            await uploadService.uploadProfileImage(file);
+
+        sendResponse(res, {
+            success: true,
+            statusCode: httpStatus.OK,
+            message: "Profile image uploaded successfully.",
+            data: result,
+        });
+    }
+);
+
 export const uploadController = {
     uploadImages,
+    uploadProfileImage
 };

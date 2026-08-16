@@ -49,6 +49,46 @@ const uploadImages = async (files: Express.Multer.File[]) => {
     return Promise.all(uploadPromises);
 };
 
+const uploadProfileImage = async (
+    file: Express.Multer.File
+) => {
+    return new Promise<{
+        url: string;
+        publicId: string;
+    }>((resolve, reject) => {
+        const uploadStream =
+            cloudinary.uploader.upload_stream(
+                {
+                    folder: "profile-images",
+                    resource_type: "image",
+                },
+                (error, result) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    if (!result) {
+                        reject(
+                            new Error(
+                                "Profile image upload failed."
+                            )
+                        );
+                        return;
+                    }
+
+                    resolve({
+                        url: result.secure_url,
+                        publicId: result.public_id,
+                    });
+                }
+            );
+
+        uploadStream.end(file.buffer);
+    });
+};
+
 export const uploadService = {
     uploadImages,
+    uploadProfileImage
 };

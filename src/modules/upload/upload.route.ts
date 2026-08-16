@@ -23,4 +23,6 @@ const upload = multer({
 
 router.post("/images", auth(Role.LANDLORD, Role.ADMIN), upload.array("images", 10), uploadController.uploadImages);
 
+router.post("/profile-image",auth( Role.TENANT,Role.LANDLORD,Role.ADMIN ), upload.single("image"),uploadController.uploadProfileImage);
+
 export const uploadRoutes = router;

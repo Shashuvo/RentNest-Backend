@@ -99,7 +99,11 @@ const getLandlordRequests = async (landlordId: string) => {
 };
 
 // update rental status
-const updateRentalStatus = async (landlordId: string, requestId: string, payload: { status: RentalStatus }) => {
+const updateRentalStatus = async (
+    landlordId: string,
+    requestId: string,
+    payload: { status: RentalStatus }
+) => {
     const request = await prisma.rentalRequest.findUniqueOrThrow({
         where: {
             id: requestId,
@@ -110,17 +114,68 @@ const updateRentalStatus = async (landlordId: string, requestId: string, payload
     });
 
     if (request.property.landlordId !== landlordId) {
-        throw new appError("You are not the owner of this property.", httpStatus.FORBIDDEN);
+        throw new appError(
+            "You are not the owner of this property.",
+            httpStatus.FORBIDDEN
+        );
     }
 
-    if ((payload.status === "APPROVED" || payload.status === "REJECTED") && request.status !== "PENDING") {
-        throw new appError("Only pending requests can be approved or rejected.", httpStatus.BAD_REQUEST);
+    if (
+        (payload.status === "APPROVED" ||
+            payload.status === "REJECTED") &&
+        request.status !== "PENDING"
+    ) {
+        throw new appError(
+            "Only pending requests can be approved or rejected.",
+            httpStatus.BAD_REQUEST
+        );
     }
 
-    if (payload.status === "COMPLETED" && request.status !== "ACTIVE") {
-        throw new appError("Only active rentals can be marked as completed.", httpStatus.BAD_REQUEST);
+    if (
+        payload.status === "COMPLETED" &&
+        request.status !== "ACTIVE"
+    ) {
+        throw new appError(
+            "Only active rentals can be marked as completed.",
+            httpStatus.BAD_REQUEST
+        );
     }
 
+    // When an active rental is completed,
+    // make the property available again.
+    if (payload.status === "COMPLETED") {
+        const [result] = await prisma.$transaction([
+            prisma.rentalRequest.update({
+                where: {
+                    id: requestId,
+                },
+                data: {
+                    status: "COMPLETED",
+                },
+                include: {
+                    tenant: {
+                        omit: {
+                            password: true,
+                        },
+                    },
+                    property: true,
+                },
+            }),
+
+            prisma.property.update({
+                where: {
+                    id: request.propertyId,
+                },
+                data: {
+                    isAvailable: true,
+                },
+            }),
+        ]);
+
+        return result;
+    }
+
+    // APPROVED / REJECTED
     const result = await prisma.rentalRequest.update({
         where: {
             id: requestId,
@@ -137,8 +192,9 @@ const updateRentalStatus = async (landlordId: string, requestId: string, payload
             property: true,
         },
     });
+
     return result;
-}
+};
 
 const getMyProperties = async (
     landlordId: string

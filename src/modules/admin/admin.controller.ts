@@ -58,10 +58,41 @@ const getAllRentalsForAdmin = catchAsync(async (req: Request, res: Response, nex
 },
 );
 
+// update rental status for admin
+const updateRentalStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const requestId =
+        req.params.requestId as string;
+
+    if (!requestId) {
+        throw new appError(
+            "Rental request ID is required",
+            httpStatus.BAD_REQUEST
+        );
+    }
+
+    const payload = req.body;
+
+    const result =
+        await adminService.updateRentalStatusForAdmin(
+            requestId,
+            payload
+        );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message:
+            "Rental request status updated successfully",
+        data: result,
+    });
+}
+);
+
 
 export const adminController = {
     getAllUsers,
     updateUserStatus,
     getAllPropertiesForAdmin,
-    getAllRentalsForAdmin
+    getAllRentalsForAdmin,
+    updateRentalStatus
 }

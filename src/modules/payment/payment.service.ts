@@ -92,28 +92,70 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
     }
 
     if (event.type === "checkout.session.completed") {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session =
+            event.data.object as Stripe.Checkout.Session;
 
-        const rentalRequestId = session.metadata?.rentalRequestId;
-        const tenantId = session.metadata?.tenantId;
+        const rentalRequestId =
+            session.metadata?.rentalRequestId;
+
+        const tenantId =
+            session.metadata?.tenantId;
 
         if (!rentalRequestId || !tenantId) {
-            throw new appError("Missing metadata in session.", httpStatus.BAD_REQUEST);
+            throw new appError(
+                "Missing metadata in session.",
+                httpStatus.BAD_REQUEST
+            );
         }
 
-        await prisma.payment.update({
-            where: { rentalRequestId },
-            data: {
-                status: "COMPLETED",
-                transactionId: session.payment_intent as string,
-                paidAt: new Date(),
-            },
-        });
+        const rentalRequest =
+            await prisma.rentalRequest.findUniqueOrThrow({
+                where: {
+                    id: rentalRequestId,
+                },
+                include: {
+                    property: true,
+                },
+            });
 
-        await prisma.rentalRequest.update({
-            where: { id: rentalRequestId },
-            data: { status: "ACTIVE" },
-        });
+        if (rentalRequest.tenantId !== tenantId) {
+            throw new appError(
+                "Invalid tenant for this payment.",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        await prisma.$transaction([
+            prisma.payment.update({
+                where: {
+                    rentalRequestId,
+                },
+                data: {
+                    status: "COMPLETED",
+                    transactionId:
+                        session.payment_intent as string,
+                    paidAt: new Date(),
+                },
+            }),
+
+            prisma.rentalRequest.update({
+                where: {
+                    id: rentalRequestId,
+                },
+                data: {
+                    status: "ACTIVE",
+                },
+            }),
+
+            prisma.property.update({
+                where: {
+                    id: rentalRequest.propertyId,
+                },
+                data: {
+                    isAvailable: false,
+                },
+            }),
+        ]);
     }
 
     return { received: true };

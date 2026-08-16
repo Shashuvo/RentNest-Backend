@@ -15,9 +15,8 @@ export interface LoginPayload {
 }
 
 export interface UpdateUserPayload {
-    name?: string,
-    email?: string,
-    phone?: string,
-    address?: string,
-    photoUrl?: string
+    name?: string;
+    phone?: string;
+    address?: string;
+    photoUrl?: string;
 }

@@ -123,26 +123,27 @@ const getMe = async (userId: string) => {
 };
 
 // update me
-const updateMe = async (userId: string, payload: UpdateUserPayload) => {
-    const { name, email, phone, address, photoUrl } = payload
+const updateMe = async (
+    userId: string,
+    payload: UpdateUserPayload
+) => {
+    const { name, phone, address, photoUrl } = payload;
+
     const user = await prisma.user.update({
         where: {
-            id: userId
+            id: userId,
         },
         data: {
             name,
-            email,
             phone,
             address,
-            photoUrl
+            photoUrl,
         },
         omit: {
-            password: true
-        }
-    })
-    if (!user) {
-        throw new appError("User not found.", httpStatus.NOT_FOUND);
-    }
+            password: true,
+        },
+    });
+
     return user;
 };
 

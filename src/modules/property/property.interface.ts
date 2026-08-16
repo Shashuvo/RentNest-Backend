@@ -9,4 +9,5 @@ export interface PropertyQuery {
     limit?: string;
     sortBy?: string;
     sortOrder?: string;
+    isAvailable?: string;
 }

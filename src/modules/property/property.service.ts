@@ -12,7 +12,11 @@ const getAllPropertiesFromDB = async (query: PropertyQuery) => {
 
     const andConditions: PropertyWhereInput[] = [];
 
-    andConditions.push({ isAvailable: true });
+    if (query.isAvailable !== undefined) {
+        andConditions.push({
+            isAvailable: query.isAvailable === "true",
+        });
+    }
 
     if (query.searchTerm) {
         andConditions.push({

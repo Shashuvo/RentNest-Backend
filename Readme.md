@@ -12,7 +12,7 @@ RentNest connects three types of users on a single platform:
 
 - **Tenants** browse listings, submit rental requests, pay rent online, and leave reviews after a completed stay.
 - **Landlords** create and manage listings, control availability, and approve or reject incoming requests.
-- **Admins** moderate the platform — managing users, listings, and categories.
+- **Admins** moderate the platform — managing users, listings, categories, and rental requests.
 
 ---
 
@@ -20,29 +20,29 @@ RentNest connects three types of users on a single platform:
 
 ### Public
 - Browse all available rental properties
-- Search and filter by location, price range, property type, and amenities
 - View detailed property listings
+- Browse property categories
 
 ### Tenant
-- Register / login
+- Register / login / refresh session
 - Submit rental requests
 - Pay rent via **Stripe** or **SSLCommerz** once a request is approved
 - View payment history and status
 - Track rental request status (pending / approved / rejected)
 - Leave reviews after a completed rental
-- Manage profile
+- Manage profile, including profile image upload
 
 ### Landlord
-- Register / login
-- Create, edit, and remove property listings
-- Set property availability
+- Register / login / refresh session
+- Create, edit, and remove property listings, with image uploads
 - Approve or reject rental requests
-- View rental history and tenant reviews
+- View rental history for their properties
 
 ### Admin
 - View and manage all users (ban / unban)
 - Oversee all listings and rental requests
-- Manage property categories
+- Directly update a rental request's status
+- Manage property categories (create / delete)
 
 ---
 
@@ -55,7 +55,8 @@ RentNest connects three types of users on a single platform:
 | Framework | Express 5 |
 | Database | PostgreSQL |
 | ORM | Prisma |
-| Auth | JWT (`jsonwebtoken`) + `bcryptjs` |
+| Auth | JWT (`jsonwebtoken`) + `bcryptjs`, role-based access control |
+| File Uploads | `multer` (in-memory, 5MB limit per image) |
 | Payments | Stripe, SSLCommerz |
 | Dev tooling | `tsx` (dev server), `tsup` (build) |
 | Middleware | `cors`, `cookie-parser`, `dotenv` |
@@ -67,11 +68,22 @@ RentNest connects three types of users on a single platform:
 ```
 RentNest-Backend/
 ├── prisma/              # Prisma schema, migrations, and seed script
-├── src/                 # Application source code
-│   └── server.ts        # App entry point
-├── .vscode/              # Editor settings
-├── prisma.config.ts      # Prisma configuration
-├── tsconfig.json         # TypeScript configuration
+├── src/
+│   ├── modules/
+│   │   ├── auth/
+│   │   ├── category/
+│   │   ├── landlord/
+│   │   ├── property/
+│   │   ├── rental/
+│   │   ├── review/
+│   │   ├── admin/
+│   │   ├── payment/
+│   │   └── upload/
+│   ├── middlewares/      # auth, notFound, globalErrorHandler
+│   └── app.ts             # Express app & route registration
+├── .vscode/
+├── prisma.config.ts
+├── tsconfig.json
 └── package.json
 ```
 
@@ -101,6 +113,7 @@ JWT_SECRET=your_jwt_secret
 STRIPE_SECRET_KEY=your_stripe_secret_key
 SSLCOMMERZ_STORE_ID=your_sslcommerz_store_id
 SSLCOMMERZ_STORE_PASSWORD=your_sslcommerz_store_password
+CLIENT_URL=http://localhost:3000
 PORT=5000
 ```
 
@@ -123,56 +136,75 @@ npm start           # start built app
 
 ## 📡 API Endpoints
 
+Roles noted below are enforced via middleware (`auth(Role.X)`); unmarked endpoints are public or open to any authenticated user.
+
 ### Authentication
-| Method | Endpoint | Description |
-| ------ | --------------------- | ----------------------------------- |
-| POST | `/api/auth/register` | Register a new user (tenant/landlord) |
-| POST | `/api/auth/login` | Login and receive a JWT |
-| GET | `/api/auth/me` | Get the current authenticated user |
+| Method | Endpoint | Role | Description |
+| ------ | -------------------------- | --------------- | ----------------------------------- |
+| POST | `/api/auth/register` | Public | Register a new user (tenant/landlord) |
+| POST | `/api/auth/login` | Public | Login and receive a JWT |
+| GET | `/api/auth/me` | Authenticated | Get the current authenticated user |
+| PATCH | `/api/auth/update-me` | Authenticated | Update the current user's profile |
+| POST | `/api/auth/refresh-token` | Public | Refresh an expired access token |
+
+### Categories
+| Method | Endpoint | Role | Description |
+| ------ | -------------------------- | ------ | ----------------------------- |
+| GET | `/api/categories` | Public | Get all property categories |
+| POST | `/api/categories` | Admin | Create a new category |
+| DELETE | `/api/categories/:categoryId` | Admin | Delete a category |
 
 ### Properties (Public)
-| Method | Endpoint | Description |
-| ------ | ----------------------- | ------------------------------------ |
-| GET | `/api/properties` | Get all properties (with filters) |
-| GET | `/api/properties/:id` | Get property details |
-| GET | `/api/categories` | Get all property categories |
+| Method | Endpoint | Role | Description |
+| ------ | ----------------------- | ------ | ------------------------- |
+| GET | `/api/properties` | Public | Get all properties |
+| GET | `/api/properties/:propertyId` | Public | Get property details |
 
 ### Landlord
-| Method | Endpoint | Description |
-| ------ | ------------------------------- | ------------------------------------------------- |
-| POST | `/api/landlord/properties` | Create a new property listing |
-| PUT | `/api/landlord/properties/:id` | Update a property listing |
-| DELETE | `/api/landlord/properties/:id` | Remove a property listing |
-| GET | `/api/landlord/requests` | Get all rental requests for landlord's listings |
-| PATCH | `/api/landlord/requests/:id` | Approve or reject a rental request |
+| Method | Endpoint | Role | Description |
+| ------ | ------------------------------- | ----------------- | --------------------------------------------------- |
+| POST | `/api/landlord/properties` | Landlord | Create a new property listing |
+| GET | `/api/landlord/properties` | Landlord | Get the landlord's own properties |
+| PUT | `/api/landlord/properties/:propertyId` | Landlord | Update a property listing |
+| DELETE | `/api/landlord/properties/:propertyId` | Landlord, Admin | Remove a property listing |
+| GET | `/api/landlord/requests` | Landlord | Get all rental requests for the landlord's listings |
+| PATCH | `/api/landlord/requests/:requestId` | Landlord | Approve or reject a rental request |
 
 ### Rental Requests
-| Method | Endpoint | Description |
-| ------ | ------------------- | ------------------------------- |
-| POST | `/api/rentals` | Submit a rental request (tenant) |
-| GET | `/api/rentals` | Get the user's rental requests |
-| GET | `/api/rentals/:id` | Get rental request details |
+| Method | Endpoint | Role | Description |
+| ------ | ------------------------- | -------- | ------------------------------- |
+| POST | `/api/rentals` | Tenant | Submit a rental request |
+| GET | `/api/rentals` | Tenant | Get the tenant's own rental requests |
+| GET | `/api/rentals/:requestId` | Tenant | Get rental request details |
 
 ### Payments
-| Method | Endpoint | Description |
-| ------ | ------------------------ | -------------------------------------------------------- |
-| POST | `/api/payments/create` | Create a payment intent/session for an approved rental |
-| POST | `/api/payments/confirm` | Confirm/verify a payment (webhook or callback) |
-| GET | `/api/payments` | Get the user's payment history |
-| GET | `/api/payments/:id` | Get payment details |
+| Method | Endpoint | Role | Description |
+| ------ | ------------------------ | ----------------- | -------------------------------------------------------- |
+| POST | `/api/payments/create` | Tenant | Create a checkout session for an approved rental |
+| POST | `/api/payments/confirm` | Webhook (no auth) | Stripe/SSLCommerz webhook — confirms payment via raw body |
+| GET | `/api/payments` | Tenant, Admin | Get payment history |
+| GET | `/api/payments/:paymentId` | Tenant, Admin | Get payment details |
 
 ### Reviews
-| Method | Endpoint | Description |
-| ------ | -------------- | ------------------------------------------ |
-| POST | `/api/reviews` | Create a review (after a completed rental) |
+| Method | Endpoint | Role | Description |
+| ------ | ------------------------ | ------ | ------------------------------------------ |
+| POST | `/api/reviews` | Tenant | Create a review (after a completed rental) |
+| GET | `/api/reviews/:propertyId` | Public | Get all reviews for a property |
+
+### Uploads
+| Method | Endpoint | Role | Description |
+| ------ | -------------------------- | ----------------------- | ---------------------------------------------- |
+| POST | `/api/upload/images` | Landlord, Admin | Upload up to 10 property images (max 5MB each) |
+| POST | `/api/upload/profile-image` | Tenant, Landlord, Admin | Upload a single profile image (max 5MB) |
 
 ### Admin
-| Method | Endpoint | Description |
-| ------ | ------------------------ | ------------------------------- |
-| GET | `/api/admin/users` | Get all users |
-| PATCH | `/api/admin/users/:id` | Update user status (ban/unban) |
-| GET | `/api/admin/properties` | Get all properties |
-| GET | `/api/admin/rentals` | Get all rental requests |
+| Method | Endpoint | Role | Description |
+| ------ | ------------------------ | ------ | ------------------------------- |
+| GET | `/api/admin/users` | Admin | Get all users |
+| PATCH | `/api/admin/users/:userId` | Admin | Update user status (ban/unban) |
+| GET | `/api/admin/properties` | Admin | Get all properties |
+| GET | `/api/admin/rentals` | Admin | Get all rental requests |
+| PATCH | `/api/admin/rentals/:requestId` | Admin | Directly update a rental request's status |
 
 ---
 
@@ -190,8 +222,8 @@ npm start           # start built app
 ## 🔄 Rental Request Flow
 
 ```
-PENDING → (landlord approves) → APPROVED → PAYMENT → ACTIVE → COMPLETED
-        → (landlord rejects)  → REJECTED
+PENDING → (landlord/admin approves) → APPROVED → PAYMENT → ACTIVE → COMPLETED
+        → (landlord/admin rejects)  → REJECTED
 ```
 
 ---

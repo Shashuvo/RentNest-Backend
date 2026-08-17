@@ -15,7 +15,7 @@ RentNest is a backend API for a rental property marketplace. Landlords can list 
 |------|-------------|-----------------|
 | **Tenant** | Users looking for rental properties | Browse listings, submit rental requests, leave reviews, manage profile |
 | **Landlord** | Property owners who list rentals | Create/manage listings, approve/reject requests, view tenant history |
-| **Admin** | Platform moderators | Manage all users, oversee all listings & requests, manage categories |
+| **Admin** | Platform moderators | Manage all users, oversee all listings & requests, manage categories, update rental status |
 
 > 💡 **Note**: Users select their role during registration.
 
@@ -31,87 +31,104 @@ RentNest is a backend API for a rental property marketplace. Landlords can list 
 
 ### Public Features
 - Browse all available rental properties
-- Search and filter by location, price range, property type, and amenities
 - View detailed property listings
+- Browse property categories
 
 ### Tenant Features
-- Register and login as tenant
+- Register, login, and refresh session as tenant
 - Submit rental requests for properties
 - **Make payments via Stripe or SSLCommerz after rental request is approved**
 - **View payment history and payment status**
 - View rental request history (pending, approved, rejected)
 - Leave reviews after a completed rental
-- Manage profile
+- Manage profile, including profile image upload
 
 ### Landlord Features
-- Register and login as landlord
-- Create, edit, and remove property listings
-- Set property availability status
+- Register, login, and refresh session as landlord
+- Create, edit, and remove property listings, with image uploads
 - Approve or reject rental requests
-- View rental history and tenant reviews
+- View rental history for their properties
 
 ### Admin Features
 - View all users (tenants and landlords)
 - Manage user status (ban/unban)
 - View all listings and rental requests
-- Manage property categories
+- Directly update a rental request's status
+- Manage property categories (create/delete)
 
 ---
 
 ## API Endpoints
 
-> ⚠️ **Note**: These endpoints are examples. You may add, edit, or remove endpoints based on your implementation needs.
+> ⚠️ **Note**: These endpoints reflect the current implementation. Roles noted below are enforced server-side; unmarked endpoints are public or open to any authenticated user.
 
 ### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user (tenant/landlord) |
-| POST | `/api/auth/login` | Login user, return JWT |
-| GET | `/api/auth/me` | Get current authenticated user |
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| POST | `/api/auth/register` | Public | Register new user (tenant/landlord) |
+| POST | `/api/auth/login` | Public | Login user, return JWT |
+| GET | `/api/auth/me` | Authenticated | Get current authenticated user |
+| PATCH | `/api/auth/update-me` | Authenticated | Update the current user's profile |
+| POST | `/api/auth/refresh-token` | Public | Refresh an expired access token |
+
+### Categories
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| GET | `/api/categories` | Public | Get all property categories |
+| POST | `/api/categories` | Admin | Create a new category |
+| DELETE | `/api/categories/:categoryId` | Admin | Delete a category |
 
 ### Properties (Public)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/properties` | Get all properties with filters (location, price, type) |
-| GET | `/api/properties/:id` | Get property details |
-| GET | `/api/categories` | Get all property categories |
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| GET | `/api/properties` | Public | Get all properties |
+| GET | `/api/properties/:propertyId` | Public | Get property details |
 
 ### Landlord Management
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/landlord/properties` | Create new property listing |
-| PUT | `/api/landlord/properties/:id` | Update property listing |
-| DELETE | `/api/landlord/properties/:id` | Remove property listing |
-| GET | `/api/landlord/requests` | Get all rental requests for landlord's properties |
-| PATCH | `/api/landlord/requests/:id` | Approve or reject a rental request |
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| POST | `/api/landlord/properties` | Landlord | Create new property listing |
+| GET | `/api/landlord/properties` | Landlord | Get the landlord's own properties |
+| PUT | `/api/landlord/properties/:propertyId` | Landlord | Update property listing |
+| DELETE | `/api/landlord/properties/:propertyId` | Landlord, Admin | Remove property listing |
+| GET | `/api/landlord/requests` | Landlord | Get all rental requests for landlord's properties |
+| PATCH | `/api/landlord/requests/:requestId` | Landlord | Approve or reject a rental request |
 
 ### Rental Requests
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/rentals` | Submit a rental request (tenant) |
-| GET | `/api/rentals` | Get user's rental requests |
-| GET | `/api/rentals/:id` | Get rental request details |
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| POST | `/api/rentals` | Tenant | Submit a rental request |
+| GET | `/api/rentals` | Tenant | Get tenant's own rental requests |
+| GET | `/api/rentals/:requestId` | Tenant | Get rental request details |
 
 ### Payments (Stripe / SSLCommerz)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/payments/create` | Create a payment intent/session for an approved rental |
-| POST | `/api/payments/confirm` | Confirm/verify payment (webhook or callback) |
-| GET | `/api/payments` | Get user's payment history |
-| GET | `/api/payments/:id` | Get payment details |
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| POST | `/api/payments/create` | Tenant | Create a payment session for an approved rental |
+| POST | `/api/payments/confirm` | Webhook (no auth) | Stripe/SSLCommerz webhook — confirms payment via raw body |
+| GET | `/api/payments` | Tenant, Admin | Get payment history |
+| GET | `/api/payments/:paymentId` | Tenant, Admin | Get payment details |
 
 ### Reviews
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/reviews` | Create review (after completed rental) |
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| POST | `/api/reviews` | Tenant | Create review (after completed rental) |
+| GET | `/api/reviews/:propertyId` | Public | Get all reviews for a property |
+
+### Uploads
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| POST | `/api/upload/images` | Landlord, Admin | Upload up to 10 property images (max 5MB each) |
+| POST | `/api/upload/profile-image` | Tenant, Landlord, Admin | Upload a single profile image (max 5MB) |
 
 ### Admin
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/users` | Get all users |
-| PATCH | `/api/admin/users/:id` | Update user status (ban/unban) |
-| GET | `/api/admin/properties` | Get all properties |
-| GET | `/api/admin/rentals` | Get all rental requests |
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| GET | `/api/admin/users` | Admin | Get all users |
+| PATCH | `/api/admin/users/:userId` | Admin | Update user status (ban/unban) |
+| GET | `/api/admin/properties` | Admin | Get all properties |
+| GET | `/api/admin/rentals` | Admin | Get all rental requests |
+| PATCH | `/api/admin/rentals/:requestId` | Admin | Directly update a rental request's status |
 
 ---
 
@@ -215,8 +232,8 @@ Design your own schema for the following tables:
                               └──────────────┘
                                /            \
                               /              \
-                       (landlord)       (landlord)
-                        approves        rejects
+                    (landlord/admin)   (landlord/admin)
+                        approves            rejects
                             /                \
                            ▼                  ▼
                    ┌──────────────┐   ┌──────────────┐
